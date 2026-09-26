@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",
-      "@atlas/shared": "*"
+       "@atlas/shared": "*",
+  "@atlas/hashing": "*"
   },
   "devDependencies": {
     "prisma": "^5.18.0",

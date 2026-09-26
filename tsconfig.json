@@ -4,6 +4,7 @@
     { "path": "apps/gateway" },
     { "path": "apps/metadata-service" },
      { "path": "apps/storage-node" },
-      { "path": "packages/shared" }
+     { "path": "packages/shared" },
+    { "path": "packages/hashing" }
   ]
 }
