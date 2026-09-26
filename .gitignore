@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+**/data/chunks/
+big-test-file.txt
+test-chunk.txt

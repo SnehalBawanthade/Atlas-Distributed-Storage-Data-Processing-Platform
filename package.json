@@ -1,0 +1,16 @@
+{
+  "name": "atlas",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+      "@types/node": "^20.14.0"
+  }
+}

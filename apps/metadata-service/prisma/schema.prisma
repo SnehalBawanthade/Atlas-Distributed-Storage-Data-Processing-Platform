@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FileStatus {
+  UPLOADING
+  UPLOADED
+  FAILED
+}
+
+enum ReplicaStatus {
+  PENDING
+  HEALTHY
+  MISSING
+  RECOVERING
+}
+
+enum NodeStatus {
+  HEALTHY
+  UNHEALTHY
+  UNKNOWN
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model File {
+  id          String     @id @default(uuid())
+  filename    String
+  size        BigInt
+  contentType String
+  checksum    String
+  chunkSize   Int
+  totalChunks Int
+  status      FileStatus @default(UPLOADING)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  chunks         Chunk[]
+  processingJobs ProcessingJob[]
+
+  @@index([status])
+}
+
+model Chunk {
+  id          String   @id @default(uuid())
+  fileId      String
+  chunkNumber Int
+  size        Int
+  checksum    String
+  createdAt   DateTime @default(now())
+
+  file     File          @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  replicas ChunkReplica[]
+
+  @@unique([fileId, chunkNumber])
+  @@index([fileId])
+}
+
+model ChunkReplica {
+  id            String        @id @default(uuid())
+  chunkId       String
+  storageNodeId String
+  status        ReplicaStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+
+  chunk       Chunk       @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  storageNode StorageNode @relation(fields: [storageNodeId], references: [id])
+
+  @@unique([chunkId, storageNodeId])
+  @@index([chunkId])
+  @@index([storageNodeId])
+}
+
+model StorageNode {
+  id            String     @id @default(uuid())
+  host          String
+  port          Int
+  status        NodeStatus @default(UNKNOWN)
+  lastHeartbeat DateTime?
+  capacity      BigInt
+  usedCapacity  BigInt     @default(0)
+  createdAt     DateTime   @default(now())
+
+  replicas ChunkReplica[]
+
+  @@unique([host, port])
+  @@index([status])
+}
+
+model ProcessingJob {
+  id          String    @id @default(uuid())
+  fileId      String
+  type        String
+  status      JobStatus @default(PENDING)
+  attempts    Int       @default(0)
+  error       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId])
+  @@index([status])
+}
