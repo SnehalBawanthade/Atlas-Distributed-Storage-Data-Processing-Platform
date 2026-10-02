@@ -4,6 +4,7 @@ import { uploadChunkToNode } from "./upload-chunk-to-node.js";
 import { resolveNodeDbId, prisma } from "./resolve-node.js";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { producer } from "./kafka-client.js";
 
 const REPLICATION_FACTOR = 2;
 const CHUNK_SIZE = 4096;
@@ -91,6 +92,23 @@ export async function uploadFile(filePath: string, filename: string) {
     where: { id: file.id },
     data: { status: "UPLOADED" },
   });
+
+    await producer.connect();
+  await producer.send({
+    topic: "file.uploaded",
+    messages: [
+      {
+        value: JSON.stringify({
+          fileId: file.id,
+          filename: file.filename,
+          totalChunks: file.chunks.length,
+        }),
+      },
+    ],
+  });
+  await producer.disconnect();
+
+  console.log(`Published file.uploaded event for ${file.id}.`);
 
   console.log(`File ${file.id} marked UPLOADED.`);
   return file.id;
